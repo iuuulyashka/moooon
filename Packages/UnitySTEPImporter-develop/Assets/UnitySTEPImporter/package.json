@@ -1,0 +1,20 @@
+{
+    "name": "de.ventus.unitystepimporter",
+    "version": "0.1.1",
+    "displayName": "Unity STEP Importer",
+    "description": "",
+    "unity": "2022.3",
+    "documentationUrl": "https://github.com/FKI-HTW/UnitySTEPImporter/blob/main/Assets/UnitySTEPImporter/README.md",
+    "changelogUrl": "https://github.com/FKI-HTW/UnitySTEPImporter/blob/main/Assets/UnitySTEPImporter/CHANGELOG.md",
+    "licensesUrl": "https://github.com/FKI-HTW/UnitySTEPImporter/blob/main/Assets/UnitySTEPImporter/LICENSE.md",
+    "keywords": [
+        "Unity Package",
+        "STEP Importer"
+    ],
+    "samples": [],
+    "author": {
+        "name": "VENTUS",
+        "email": "ventus-intern@lists.htw-berlin.de",
+        "url": "https://ventus3d.de/"
+    }
+}
