@@ -5,7 +5,7 @@ public class CameraController : MonoBehaviour
     public float sensitivity = 3f;
 
     private float rotX = 0f;
-    private float rotY = 0f;
+    private float rotY = 90f;
 
     void Start()
     {

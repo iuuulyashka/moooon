@@ -5,8 +5,8 @@ public class LaserDetector : MonoBehaviour
 {
     [Header("Нейросеть")]
     public Unity.InferenceEngine.ModelAsset modelAsset;
-    public float confidenceThreshold = 0.5f;
-    public float detectionInterval = 0.5f;
+    public float confidenceThreshold = 0.4f; // Чуть снизили для лучшего распознавания
+    public float detectionInterval = 0.05f;  // Быстрый отклик
 
     [Header("Лазер")]
     public LineRenderer laserLine;
@@ -26,11 +26,11 @@ public class LaserDetector : MonoBehaviour
         if (laserLine != null)
         {
             laserLine.enabled = false;
-            laserLine.startWidth = 0.05f;
-            laserLine.endWidth = 0.01f;
+            laserLine.startWidth = 0.3f;
+            laserLine.endWidth = 0.3f;
             laserLine.material = new Material(Shader.Find("Sprites/Default"));
             laserLine.startColor = Color.red;
-            laserLine.endColor = new Color(1f, 0f, 0f, 0f);
+            laserLine.endColor = Color.red;
         }
 
         InvokeRepeating(nameof(Detect), 1f, detectionInterval);
@@ -96,26 +96,35 @@ public class LaserDetector : MonoBehaviour
             }
         }
 
-        Debug.Log("Лучшая уверенность: " + bestConf);
-
         if (bestConf > confidenceThreshold)
         {
             float screenX = bestX / 640f;
             float screenY = 1f - bestY / 640f;
             Ray ray = cam.ViewportPointToRay(new Vector3(screenX, screenY, 0));
 
-            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+            // ИСПРАВЛЕНО: Стреляем объемной сферой (радиус 0.7 метра), чтобы гарантированно зацепить мяч, даже если координаты смазаны
+            RaycastHit[] hits = Physics.SphereCastAll(ray, 0.7f, 100f);
+            System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+            foreach (RaycastHit hit in hits)
             {
-                Debug.Log("Raycast попал в: " + hit.collider.gameObject.name + " тег: " + hit.collider.gameObject.tag);
+                string objName = hit.collider.gameObject.name.ToLower();
+
+                // Пропускаем хитбоксы и сам луноход
+                if (objName.Contains("hitbox") || objName.Contains("lunahod") || objName.Contains("lyna"))
+                {
+                    continue;
+                }
+
                 GameObject target = hit.collider.gameObject;
+
                 if (target.CompareTag("RedBall"))
                 {
-                    StartCoroutine(ShootLaser(hit.point, target));
+                    // ИСПРАВЛЕНО: Вместо неточной точки hit.point, лазер наводится СТРОГО в центр (Transform.position) мяча
+                    Vector3 perfectTargetPos = target.transform.position;
+                    StartCoroutine(ShootLaser(perfectTargetPos, target));
+                    break;
                 }
-            }
-            else
-            {
-                Debug.Log("Raycast никуда не попал");
             }
         }
     }
@@ -123,6 +132,8 @@ public class LaserDetector : MonoBehaviour
     IEnumerator ShootLaser(Vector3 targetPos, GameObject target)
     {
         isShooting = true;
+
+        if (target != null) Destroy(target);
 
         if (laserLine != null && laserOrigin != null)
         {
@@ -133,7 +144,6 @@ public class LaserDetector : MonoBehaviour
 
         yield return new WaitForSeconds(laserDuration);
 
-        if (target != null) Destroy(target);
         if (laserLine != null) laserLine.enabled = false;
 
         isShooting = false;

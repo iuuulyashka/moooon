@@ -1,13 +1,19 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class LunahodController : MonoBehaviour
 {
     public float speed = 5f;
     public float turnSpeed = 60f;
 
-    void Update()
+    private Rigidbody rb;
+
+    void Start()
     {
-        // ����������
+        rb = GetComponent<Rigidbody>();
+    }
+
+    void FixedUpdate()
+    {
         float move = 0f;
         float turn = 0f;
 
@@ -16,16 +22,12 @@ public class LunahodController : MonoBehaviour
         if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) turn = -1f;
         if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) turn = 1f;
 
-        transform.Translate(Vector3.right * move * speed * Time.deltaTime);
-        transform.Rotate(Vector3.forward * turn * turnSpeed * Time.deltaTime);
+        // Движение вперед/назад строго по КРАСНОЙ стрелке (transform.right)
+        Vector3 moveDir = transform.right * move * speed;
+        rb.MovePosition(rb.position + moveDir * Time.fixedDeltaTime);
 
-        // ��������� � �����������
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position + Vector3.up * 5f, Vector3.down, out hit, 20f))
-        {
-            Vector3 pos = transform.position;
-            pos.y = hit.point.y + 0.5f;
-            transform.position = pos;
-        }
+        // Вращение строго вокруг СВОЕЙ локальной оси Y на одной точке
+        Quaternion deltaRotation = Quaternion.Euler(0f, turn * turnSpeed * Time.fixedDeltaTime, 0f);
+        rb.MoveRotation(rb.rotation * deltaRotation);
     }
 }
